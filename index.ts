@@ -36,33 +36,25 @@ export const getUniqueBrowserTabId = (): string => {
   return id;
 }
 
-type CheckIfIsDupResolveType = (value: boolean | PromiseLike<boolean>) => void;
+export const checkIfIsDup = async (id: string) => {
+  const broadcastChannel = new BroadcastChannel(STORAGE_ID);
 
-const createRespondToCheckMessageHandler = (id: string, broadcastChannel: BroadcastChannel) => {
-  return (event: MessageEvent<Message>) => {
+  const respondToCheckMessageHandler = (event: MessageEvent<Message>) => {
     const { data } = event;
     if (isCheck(data) && data.id === id) {
       broadcastChannel.postMessage({ type: "checkResponse", id, exists: true });
     }
   };
-}
-const createRespondToCheckResponseMessageHandler = (id: string, resolve: CheckIfIsDupResolveType) => {
-const start = new Date();
-  return (event: MessageEvent<Message>) => {
-    const { data } = event;
-    if (data.id == id && isCheckResponse(data)) {
-const end = new Date();
-console.log(`Response time: ${end.getTime() - start.getTime()} ms`);
-      resolve(true);
-    }
-  };
-}
-export const checkIfIsDup = async (id: string) => {
-  const broadcastChannel = new BroadcastChannel(STORAGE_ID);
-  const respondToCheckMessageHandler = createRespondToCheckMessageHandler(id, broadcastChannel);
   broadcastChannel.addEventListener("message", respondToCheckMessageHandler);
+
   const isDup = await new Promise<boolean>((resolve, reject) => {
-    const respondToCheckResponseMessageHandler = createRespondToCheckResponseMessageHandler(id, resolve);
+    const respondToCheckResponseMessageHandler = (event: MessageEvent<Message>) => {
+      const { data } = event;
+      if (data.id == id && isCheckResponse(data)) {
+        resolve(true);
+      }
+    };
+
     broadcastChannel.addEventListener("message", respondToCheckResponseMessageHandler, { once: true });
     broadcastChannel.addEventListener("messageerror", (error) => reject(error), { once: true });
 
