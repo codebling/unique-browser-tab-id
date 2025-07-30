@@ -1,5 +1,12 @@
 {
   "dependencies": {
     "nanoid": "^5.1.5"
-  }
+  },
+  "name": "unique-browser-tab-id",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "devDependencies": {},
+  "author": "",
+  "license": "ISC",
+  "description": "Get a unique, persistent id for every browser tab"
 }
