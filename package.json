@@ -10,6 +10,15 @@
     "typescript": "^5.8.3",
     "vite": "^7.0.6"
   },
+  "scripts": {
+    "start": "npm run dev",
+    "dev": "concurrently -k npm:dev-vite npm:dev-tsc",
+    "dev-vite": "vite test",
+    "dev-tsc": "npm run tsc -- --watch",
+    "tsc": "tsc --noEmit --lib es2015,dom index.ts",
+    "build": "npm run tsc && npm run build-vite",
+    "build-vite": "vite build test"
+  },
   "author": "",
   "license": "ISC",
   "description": "Get a unique, persistent id for every browser tab"
