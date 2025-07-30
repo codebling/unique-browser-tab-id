@@ -57,20 +57,24 @@ export const checkIfIsDup = async (id: string) => {
     );
 
     const messageErrorHandler = (error: MessageEvent<any>): void => {
-      clearTimeout(timerId);
-      broadcastChannel.removeEventListener("message", respondToCheckResponseMessageHandler);
+      cancelTimerAndUnregisterListeners();
       reject(error)
     };
 
     const respondToCheckResponseMessageHandler = (event: MessageEvent<Message>) => {
       const { data } = event;
       if (data.id == id && isCheckResponse(data)) {
-        clearTimeout(timerId);
-        broadcastChannel.removeEventListener("messageerror", messageErrorHandler);
+        cancelTimerAndUnregisterListeners();
         resolve(true);
       }
     };
 
+    const cancelTimerAndUnregisterListeners = () => {
+      clearTimeout(timerId);
+      broadcastChannel.removeEventListener("message", respondToCheckResponseMessageHandler);
+      broadcastChannel.removeEventListener("messageerror", messageErrorHandler);
+    };
+    
     broadcastChannel.addEventListener("message", respondToCheckResponseMessageHandler, { once: true });
     broadcastChannel.addEventListener("messageerror", messageErrorHandler, { once: true });
 
