@@ -39,8 +39,7 @@ export const getUniqueBrowserTabId = (): string => {
 export const checkIfIsDup = async (id: string) => {
   const broadcastChannel = new BroadcastChannel(STORAGE_ID);
 
-  const respondToCheckMessageHandler = (event: MessageEvent<Message>) => {
-    const { data } = event;
+  const respondToCheckMessageHandler = ({ data }: MessageEvent<Message>) => {
     if (isCheck(data) && data.id === id) {
       broadcastChannel.postMessage({ type: "checkResponse", id, exists: true });
     }
@@ -61,8 +60,7 @@ export const checkIfIsDup = async (id: string) => {
       reject(error)
     };
 
-    const respondToCheckResponseMessageHandler = (event: MessageEvent<Message>) => {
-      const { data } = event;
+    const respondToCheckResponseMessageHandler = ({ data }: MessageEvent<Message>) => {
       if (data.id == id && isCheckResponse(data)) {
         cancelTimerAndUnregisterListeners();
         resolve(true);
@@ -74,7 +72,7 @@ export const checkIfIsDup = async (id: string) => {
       broadcastChannel.removeEventListener("message", respondToCheckResponseMessageHandler);
       broadcastChannel.removeEventListener("messageerror", messageErrorHandler);
     };
-    
+
     broadcastChannel.addEventListener("message", respondToCheckResponseMessageHandler, { once: true });
     broadcastChannel.addEventListener("messageerror", messageErrorHandler, { once: true });
 
