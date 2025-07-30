@@ -80,7 +80,6 @@ export const checkIfIsDup = async (id: string) => {
 
   });
 
-  // broadcastChannel.close();
   return isDup;
 }
 
