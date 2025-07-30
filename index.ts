@@ -48,12 +48,10 @@ export const checkIfIsDup = async (id: string) => {
     const start = new Date();
     broadcastChannel.addEventListener("message", (event: MessageEvent<Message>) => {
       const { data } = event;
-      if (data.id == id) {
-        if (isCheckResponse(data)) {
-          const end = new Date();
-          console.log(`resolved in ${end.getTime() - start.getTime()} ms`);
-          resolve(true);
-        }
+      if (data.id == id && isCheckResponse(data)) {
+        const end = new Date();
+        console.log(`resolved in ${end.getTime() - start.getTime()} ms`);
+        resolve(true);
       }
     });
     broadcastChannel.onmessageerror = (error) => {
