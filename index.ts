@@ -10,7 +10,9 @@ const getFromSessionStorage = (): string | null => {
   return sessionStorage.getItem(CHANNEL_AND_STORAGE_NAME);
 }
 
-export const getUniqueBrowserTabId = (): string => {
+export const getUniqueBrowserTabId = async (): Promise<string> => {
+  const broadcastChannel = new BroadcastChannel(CHANNEL_AND_STORAGE_NAME);
+
   const sessionId = getFromSessionStorage();
   let id: string;
   if (sessionId == null) {
@@ -18,15 +20,24 @@ export const getUniqueBrowserTabId = (): string => {
     id = nanoid(4); //580 IDs needed for 1% probability of one or more collisions https://zelark.github.io/nano-id-cc/
     storeInSessionStorage(id);
   } else {
-    //page was refreshed or duplicated
+    //page was either refreshed or duplicated
     id = sessionId;
+    const isDup = await checkIfIsDup(id, broadcastChannel);
+    if (isDup) {
+      //tab was duplicated, create new id
+      id = nanoid(4);
+      storeInSessionStorage(id);
+    } else {
+      //page was refreshed, everything is ok, keep non-duplicate id
+    }
   }
+
+  registerCheckIdListener(id, broadcastChannel);
 
   return id;
 }
 
-const createBroadcastChannelAndRegisterCheckIdListener = (id: string): BroadcastChannel => {
-  const broadcastChannel = new BroadcastChannel(CHANNEL_AND_STORAGE_NAME);
+const registerCheckIdListener = (id: string, broadcastChannel: BroadcastChannel): void => {
 
   const respondToCheckMessageHandler = ({ data }: MessageEvent<Message>) => {
     if (isCheck(data) && data.id === id) {
@@ -34,8 +45,6 @@ const createBroadcastChannelAndRegisterCheckIdListener = (id: string): Broadcast
     }
   };
   broadcastChannel.addEventListener("message", respondToCheckMessageHandler);
-
-  return broadcastChannel;
 };
 
 export const checkIfIsDup = (id: string, broadcastChannel: BroadcastChannel) => new Promise<boolean>((resolve, reject) => {
@@ -91,12 +100,3 @@ const isCheck = (message: Message): message is Check => {
 const isCheckResponse = (message: Message): message is CheckResponse => {
   return message.type === "checkResponse";
 }
-
-export const getId = async () => {
-  const id = 'abcd';
-  const broadcastChannel = createBroadcastChannelAndRegisterCheckIdListener(id);
-  const isDup = await checkIfIsDup(id, broadcastChannel);
-  
-  console.log(isDup ? "This is a duplicate tab." : "This is a unique tab.");
-  return isDup;
-};

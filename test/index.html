@@ -1,8 +1,9 @@
 <html>
 <head>
   <script type="module">
-    import { getId } from '../index.ts';
-    getId();
+    import { getUniqueBrowserTabId } from '../index.ts';
+    const id = await getUniqueBrowserTabId();
+    document.body.append(`Unique Browser Tab ID: ${id}`);
   </script>
 </head>
 <body>
