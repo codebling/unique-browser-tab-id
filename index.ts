@@ -36,7 +36,7 @@ export const getUniqueBrowserTabId = (): string => {
   return id;
 }
 
-export const checkIfIsDup = async (id: string) => {
+const createBroadcastChannelAndRegisterCheckIdListener = (id: string): BroadcastChannel => {
   const broadcastChannel = new BroadcastChannel(STORAGE_ID);
 
   const respondToCheckMessageHandler = ({ data }: MessageEvent<Message>) => {
@@ -45,6 +45,11 @@ export const checkIfIsDup = async (id: string) => {
     }
   };
   broadcastChannel.addEventListener("message", respondToCheckMessageHandler);
+
+  return broadcastChannel;
+};
+
+export const checkIfIsDup = async (id: string, broadcastChannel: BroadcastChannel) => {
 
   const isDup = await new Promise<boolean>((resolve, reject) => {
     const timerId = setTimeout(
@@ -105,7 +110,8 @@ const isCheckResponse = (message: Message): message is CheckResponse => {
 
 export const getId = async () => {
   const id = 'abcd';
-  const isDup = await checkIfIsDup(id);
+  const broadcastChannel = createBroadcastChannelAndRegisterCheckIdListener(id);
+  const isDup = await checkIfIsDup(id, broadcastChannel);
   
   console.log(isDup ? "This is a duplicate tab." : "This is a unique tab.");
   return isDup;
