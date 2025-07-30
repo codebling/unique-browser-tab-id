@@ -1,12 +1,12 @@
 import { nanoid } from 'nanoid';
 
-const STORAGE_ID = "unique-browser-tab-id";
+const CHANNEL_AND_STORAGE_NAME = "unique-browser-tab-id";
 
 const storeInSpan = (id: string): void => {
-  let span = document.getElementById(STORAGE_ID);
+  let span = document.getElementById(CHANNEL_AND_STORAGE_NAME);
   if (span == null) {
     span = document.createElement("span");
-    span.id = STORAGE_ID;
+    span.id = CHANNEL_AND_STORAGE_NAME;
     span.style.display = "none";
     document.head.prepend(span);
   }
@@ -14,11 +14,11 @@ const storeInSpan = (id: string): void => {
 };
 
 const storeInSessionStorage = (id: string): void => {
-  sessionStorage.setItem(STORAGE_ID, id);
+  sessionStorage.setItem(CHANNEL_AND_STORAGE_NAME, id);
 }
 
 const getFromSessionStorage = (): string | null => {
-  return sessionStorage.getItem(STORAGE_ID);
+  return sessionStorage.getItem(CHANNEL_AND_STORAGE_NAME);
 }
 
 export const getUniqueBrowserTabId = (): string => {
@@ -37,7 +37,7 @@ export const getUniqueBrowserTabId = (): string => {
 }
 
 const createBroadcastChannelAndRegisterCheckIdListener = (id: string): BroadcastChannel => {
-  const broadcastChannel = new BroadcastChannel(STORAGE_ID);
+  const broadcastChannel = new BroadcastChannel(CHANNEL_AND_STORAGE_NAME);
 
   const respondToCheckMessageHandler = ({ data }: MessageEvent<Message>) => {
     if (isCheck(data) && data.id === id) {
