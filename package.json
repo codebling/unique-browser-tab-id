@@ -15,10 +15,12 @@
     "start": "npm run dev",
     "dev": "concurrently -k npm:dev-vite npm:dev-tsc",
     "dev-vite": "vite test",
-    "dev-tsc": "npm run tsc -- --watch",
-    "tsc": "tsc --noEmit --lib es2015,dom index.ts",
-    "build": "npm run tsc && npm run build-vite",
-    "build-vite": "vite build test"
+    "dev-tsc": "npm run tsc -- --noEmit --watch",
+    "tsc": "tsc --lib es2015,dom index.ts",
+    "build": "npm run build-tsc",
+    "build-tsc": "npm run tsc -- --declaration true --outDir dist",
+    "build-vite": "vite build test",
+    "test-the-build-interactively": "npm run build && npx serve test/dist"
   },
   "author": "",
   "license": "ISC",
