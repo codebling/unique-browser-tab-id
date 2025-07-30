@@ -55,12 +55,18 @@ export const checkIfIsDup = async (id: string) => {
       200, //response time on 2 cores at 800 MHz loaded to 80% in Firefox was usually 20-30 ms, one at 40 and one took over 100ms
            //with 12 cores @4.6GHz and < 10% load, avg response was ~3ms
     );
-    
-    const messageErrorHandler = (error: MessageEvent<any>): void => reject(error);
+
+    const messageErrorHandler = (error: MessageEvent<any>): void => {
+      clearTimeout(timerId);
+      broadcastChannel.removeEventListener("message", respondToCheckResponseMessageHandler);
+      reject(error)
+    };
 
     const respondToCheckResponseMessageHandler = (event: MessageEvent<Message>) => {
       const { data } = event;
       if (data.id == id && isCheckResponse(data)) {
+        clearTimeout(timerId);
+        broadcastChannel.removeEventListener("messageerror", messageErrorHandler);
         resolve(true);
       }
     };
