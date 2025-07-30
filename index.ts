@@ -38,15 +38,15 @@ export const getUniqueBrowserTabId = (): string => {
 
 export const checkIfIsDup = async (id: string) => {
   const broadcastChannel = new BroadcastChannel(STORAGE_ID);
-  // broadcastChannel.onmessage = (event: MessageEvent<Message>) => {
-  //   const { data } = event;
-  //   if (isCheck(data) && data.id === id) {
-  //     broadcastChannel.postMessage({ type: "checkResponse", id, exists: true });
-  //   }
-  // };
+  broadcastChannel.addEventListener("message", (event: MessageEvent<Message>) => {
+    const { data } = event;
+    if (isCheck(data) && data.id === id) {
+      broadcastChannel.postMessage({ type: "checkResponse", id, exists: true });
+    }
+  });
   const isDup = await new Promise<boolean>((resolve, reject) => {
     const start = new Date();
-    broadcastChannel.onmessage = (event: MessageEvent<Message>) => {
+    broadcastChannel.addEventListener("message", (event: MessageEvent<Message>) => {
       const { data } = event;
       if (data.id == id) {
         if (isCheckResponse(data)) {
@@ -54,11 +54,8 @@ export const checkIfIsDup = async (id: string) => {
           console.log(`resolved in ${end.getTime() - start.getTime()} ms`);
           resolve(true);
         }
-        if (isCheck(data) && data.id === id) {
-          broadcastChannel.postMessage({ type: "checkResponse", id, exists: true });
-        }
       }
-    };
+    });
     broadcastChannel.onmessageerror = (error) => {
       reject(error);
     };
