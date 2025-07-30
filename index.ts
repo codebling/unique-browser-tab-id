@@ -36,27 +36,36 @@ export const getUniqueBrowserTabId = (): string => {
   return id;
 }
 
-export const checkIfIsDup = async (id: string) => {
-  const broadcastChannel = new BroadcastChannel(STORAGE_ID);
-  broadcastChannel.addEventListener("message", (event: MessageEvent<Message>) => {
+type CheckIfIsDupResolveType = (value: boolean | PromiseLike<boolean>) => void;
+
+const createRespondToCheckMessageHandler = (id: string, broadcastChannel: BroadcastChannel) => {
+  return (event: MessageEvent<Message>) => {
     const { data } = event;
     if (isCheck(data) && data.id === id) {
       broadcastChannel.postMessage({ type: "checkResponse", id, exists: true });
     }
-  });
+  };
+}
+const createRespondToCheckResponseMessageHandler = (id: string, resolve: CheckIfIsDupResolveType) => {
+const start = new Date();
+  return (event: MessageEvent<Message>) => {
+    const { data } = event;
+    if (data.id == id && isCheckResponse(data)) {
+const end = new Date();
+console.log(`Response time: ${end.getTime() - start.getTime()} ms`);
+      resolve(true);
+    }
+  };
+}
+export const checkIfIsDup = async (id: string) => {
+  const broadcastChannel = new BroadcastChannel(STORAGE_ID);
+  const respondToCheckMessageHandler = createRespondToCheckMessageHandler(id, broadcastChannel);
+  broadcastChannel.addEventListener("message", respondToCheckMessageHandler);
   const isDup = await new Promise<boolean>((resolve, reject) => {
-    const start = new Date();
-    broadcastChannel.addEventListener("message", (event: MessageEvent<Message>) => {
-      const { data } = event;
-      if (data.id == id && isCheckResponse(data)) {
-        const end = new Date();
-        console.log(`resolved in ${end.getTime() - start.getTime()} ms`);
-        resolve(true);
-      }
-    });
-    broadcastChannel.onmessageerror = (error) => {
-      reject(error);
-    };
+    const respondToCheckResponseMessageHandler = createRespondToCheckResponseMessageHandler(id, resolve);
+    broadcastChannel.addEventListener("message", respondToCheckResponseMessageHandler, { once: true });
+    broadcastChannel.addEventListener("messageerror", (error) => reject(error), { once: true });
+
     broadcastChannel.postMessage({ type: "check", id });
 
     const timerId = setTimeout(
