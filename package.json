@@ -5,7 +5,11 @@
   "name": "unique-browser-tab-id",
   "version": "1.0.0",
   "main": "index.ts",
-  "devDependencies": {},
+  "devDependencies": {
+    "concurrently": "^9.2.0",
+    "typescript": "^5.8.3",
+    "vite": "^7.0.6"
+  },
   "author": "",
   "license": "ISC",
   "description": "Get a unique, persistent id for every browser tab"
