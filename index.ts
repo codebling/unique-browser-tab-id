@@ -2,17 +2,6 @@ import { nanoid } from 'nanoid';
 
 const CHANNEL_AND_STORAGE_NAME = "unique-browser-tab-id";
 
-const storeInSpan = (id: string): void => {
-  let span = document.getElementById(CHANNEL_AND_STORAGE_NAME);
-  if (span == null) {
-    span = document.createElement("span");
-    span.id = CHANNEL_AND_STORAGE_NAME;
-    span.style.display = "none";
-    document.head.prepend(span);
-  }
-  span.innerHTML = id;
-};
-
 const storeInSessionStorage = (id: string): void => {
   sessionStorage.setItem(CHANNEL_AND_STORAGE_NAME, id);
 }
