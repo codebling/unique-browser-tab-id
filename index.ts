@@ -48,6 +48,14 @@ export const checkIfIsDup = async (id: string) => {
   broadcastChannel.addEventListener("message", respondToCheckMessageHandler);
 
   const isDup = await new Promise<boolean>((resolve, reject) => {
+    const timerId = setTimeout(
+      () => {
+        resolve(false); // If no response after a while, assume not a duplicate
+      }, 
+      200, //response time on 2 cores at 800 MHz loaded to 80% in Firefox was usually 20-30 ms, one at 40 and one took over 100ms
+           //with 12 cores @4.6GHz and < 10% load, avg response was ~3ms
+    ); 
+
     const respondToCheckResponseMessageHandler = (event: MessageEvent<Message>) => {
       const { data } = event;
       if (data.id == id && isCheckResponse(data)) {
@@ -60,13 +68,6 @@ export const checkIfIsDup = async (id: string) => {
 
     broadcastChannel.postMessage({ type: "check", id });
 
-    const timerId = setTimeout(
-      () => {
-        resolve(false); // If no response after a while, assume not a duplicate
-      }, 
-      200, //response time on 2 cores at 800 MHz loaded to 80% in Firefox was usually 20-30 ms, one at 40 and one took over 100ms
-           //with 12 cores @4.6GHz and < 10% load, avg response was ~3ms
-    ); 
   });
 
   // broadcastChannel.close();
