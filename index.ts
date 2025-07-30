@@ -49,44 +49,39 @@ const createBroadcastChannelAndRegisterCheckIdListener = (id: string): Broadcast
   return broadcastChannel;
 };
 
-export const checkIfIsDup = async (id: string, broadcastChannel: BroadcastChannel) => {
+export const checkIfIsDup = (id: string, broadcastChannel: BroadcastChannel) => new Promise<boolean>((resolve, reject) => {
+  const timerId = setTimeout(
+    () => {
+      resolve(false); // If no response after a while, assume not a duplicate
+    }, 
+    200, //response time on 2 cores at 800 MHz loaded to 80% in Firefox was usually 20-30 ms, one at 40 and one took over 100ms
+          //with 12 cores @4.6GHz and < 10% load, avg response was ~3ms
+  );
 
-  const isDup = await new Promise<boolean>((resolve, reject) => {
-    const timerId = setTimeout(
-      () => {
-        resolve(false); // If no response after a while, assume not a duplicate
-      }, 
-      200, //response time on 2 cores at 800 MHz loaded to 80% in Firefox was usually 20-30 ms, one at 40 and one took over 100ms
-           //with 12 cores @4.6GHz and < 10% load, avg response was ~3ms
-    );
+  const messageErrorHandler = (error: MessageEvent<any>): void => {
+    cancelTimerAndUnregisterListeners();
+    reject(error)
+  };
 
-    const messageErrorHandler = (error: MessageEvent<any>): void => {
+  const respondToCheckResponseMessageHandler = ({ data }: MessageEvent<Message>) => {
+    if (data.id == id && isCheckResponse(data)) {
       cancelTimerAndUnregisterListeners();
-      reject(error)
-    };
+      resolve(true);
+    }
+  };
 
-    const respondToCheckResponseMessageHandler = ({ data }: MessageEvent<Message>) => {
-      if (data.id == id && isCheckResponse(data)) {
-        cancelTimerAndUnregisterListeners();
-        resolve(true);
-      }
-    };
+  const cancelTimerAndUnregisterListeners = () => {
+    clearTimeout(timerId);
+    broadcastChannel.removeEventListener("message", respondToCheckResponseMessageHandler);
+    broadcastChannel.removeEventListener("messageerror", messageErrorHandler);
+  };
 
-    const cancelTimerAndUnregisterListeners = () => {
-      clearTimeout(timerId);
-      broadcastChannel.removeEventListener("message", respondToCheckResponseMessageHandler);
-      broadcastChannel.removeEventListener("messageerror", messageErrorHandler);
-    };
+  broadcastChannel.addEventListener("message", respondToCheckResponseMessageHandler, { once: true });
+  broadcastChannel.addEventListener("messageerror", messageErrorHandler, { once: true });
 
-    broadcastChannel.addEventListener("message", respondToCheckResponseMessageHandler, { once: true });
-    broadcastChannel.addEventListener("messageerror", messageErrorHandler, { once: true });
+  broadcastChannel.postMessage({ type: "check", id });
 
-    broadcastChannel.postMessage({ type: "check", id });
-
-  });
-
-  return isDup;
-}
+});
 
 type Message = Check | CheckResponse;
 type Check = {
