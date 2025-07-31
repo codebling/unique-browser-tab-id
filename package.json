@@ -1,20 +1,9 @@
 {
-  "dependencies": {
-    "nanoid": "^5.1.5"
-  },
   "name": "unique-browser-tab-id",
   "version": "1.0.0",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "dist/**/*"
-  ],
-  "devDependencies": {
-    "concurrently": "^9.2.0",
-    "serve": "^14.2.4",
-    "typescript": "^5.8.3",
-    "vite": "^7.0.6"
-  },
+  "author": "",
+  "license": "ISC",
+  "description": "Get a unique, persistent id for every browser tab",
   "scripts": {
     "start": "npm run dev",
     "dev": "concurrently -k npm:dev-vite npm:dev-tsc",
@@ -26,7 +15,18 @@
     "build-vite": "vite build test",
     "test-the-build-interactively": "npm run build && npx serve test/dist"
   },
-  "author": "",
-  "license": "ISC",
-  "description": "Get a unique, persistent id for every browser tab"
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "dependencies": {
+    "nanoid": "^5.1.5"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0",
+    "serve": "^14.2.4",
+    "typescript": "^5.8.3",
+    "vite": "^7.0.6"
+  }
 }
