@@ -4,7 +4,11 @@
   },
   "name": "unique-browser-tab-id",
   "version": "1.0.0",
-  "main": "index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
   "devDependencies": {
     "concurrently": "^9.2.0",
     "serve": "^14.2.4",
