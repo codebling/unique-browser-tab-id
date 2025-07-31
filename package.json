@@ -22,7 +22,7 @@
     "dev-tsc": "npm run tsc -- --noEmit --watch",
     "tsc": "tsc --lib es2015,dom index.ts",
     "build": "npm run build-tsc",
-    "build-tsc": "npm run tsc -- --declaration true --outDir dist",
+    "build-tsc": "rm dist/* && npm run tsc -- --declaration true --outDir dist",
     "build-vite": "vite build test",
     "test-the-build-interactively": "npm run build && npx serve test/dist"
   },
