@@ -2,6 +2,7 @@ import { nanoid } from 'nanoid';
 
 const CHANNEL_AND_STORAGE_NAME = "unique-browser-tab-id";
 const IN_FLIGHT_PROMISE_NAME = `${CHANNEL_AND_STORAGE_NAME}-in-flight-promise`;
+const CONFIRMED_UNIQUE_ID_NAME = `${CHANNEL_AND_STORAGE_NAME}-confirmed-unique-id`;
 
 const storeInSessionStorage = (id: string): void => {
   sessionStorage.setItem(CHANNEL_AND_STORAGE_NAME, id);
@@ -12,6 +13,10 @@ const getFromSessionStorage = (): string | null => {
 }
 
 export const getUniqueBrowserTabId = async (): Promise<string> => {
+  if (window[CONFIRMED_UNIQUE_ID_NAME] != null) {
+    return window[CONFIRMED_UNIQUE_ID_NAME];
+  }
+
   if (window[IN_FLIGHT_PROMISE_NAME] != null) {
     const inFlightPromise = window[IN_FLIGHT_PROMISE_NAME];
     await inFlightPromise;
@@ -48,6 +53,7 @@ export const getUniqueBrowserTabId = async (): Promise<string> => {
     }
   }
 
+  window[CONFIRMED_UNIQUE_ID_NAME] = id;
   registerCheckIdListener(id, broadcastChannel);
 
   return id;
