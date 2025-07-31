@@ -20,9 +20,9 @@ export const getUniqueBrowserTabId = async (): Promise<string> => {
   }
   
   const broadcastChannel = window[CHANNEL_AND_STORAGE_NAME] ?? new BroadcastChannel(CHANNEL_AND_STORAGE_NAME);
- //Save channel to window so it is shared between instances of this script within the same tab. 
- //This prevents instances on the same tab from receiving messages from each other.
- window[CHANNEL_AND_STORAGE_NAME] = broadcastChannel;
+  //Save channel to window so it is shared between instances of this script within the same tab. 
+  //This prevents instances on the same tab from receiving messages from each other.
+  window[CHANNEL_AND_STORAGE_NAME] = broadcastChannel;
 
   const sessionId = getFromSessionStorage();
   let id: string;
