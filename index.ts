@@ -1,6 +1,7 @@
 import { nanoid } from 'nanoid';
 
 const CHANNEL_AND_STORAGE_NAME = "unique-browser-tab-id";
+const IN_FLIGHT_PROMISE_NAME = `${CHANNEL_AND_STORAGE_NAME}-in-flight-promise`;
 
 const storeInSessionStorage = (id: string): void => {
   sessionStorage.setItem(CHANNEL_AND_STORAGE_NAME, id);
@@ -11,6 +12,13 @@ const getFromSessionStorage = (): string | null => {
 }
 
 export const getUniqueBrowserTabId = async (): Promise<string> => {
+  if (window[IN_FLIGHT_PROMISE_NAME] != null) {
+    const inFlightPromise = window[IN_FLIGHT_PROMISE_NAME];
+    await inFlightPromise;
+    const newBrowserTabId = await getUniqueBrowserTabId();
+    return newBrowserTabId;
+  }
+  
   const broadcastChannel = window[CHANNEL_AND_STORAGE_NAME] ?? new BroadcastChannel(CHANNEL_AND_STORAGE_NAME);
  //Save channel to window so it is shared between instances of this script within the same tab. 
  //This prevents instances on the same tab from receiving messages from each other.
@@ -25,7 +33,12 @@ export const getUniqueBrowserTabId = async (): Promise<string> => {
   } else {
     //page was either refreshed or duplicated
     id = sessionId;
-    const isDup = await checkIfIsDup(id, broadcastChannel);
+
+    const isDupPromise = checkIfIsDup(id, broadcastChannel);
+    window[IN_FLIGHT_PROMISE_NAME] = isDupPromise;
+    const isDup = await isDupPromise;
+    window[IN_FLIGHT_PROMISE_NAME] = null;
+
     if (isDup) {
       //tab was duplicated, create new id
       id = nanoid(4);
