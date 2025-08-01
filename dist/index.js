@@ -38,7 +38,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.checkIfIsDup = exports.getUniqueBrowserTabId = void 0;
 var nanoid_1 = require("nanoid");
+// There are several levels at which information can be shared:
+//   * closures - singleton when a script is loaded from the same source
+//   * window object - singleton for the tab, even when script is loaded from different sources
+//   * SessionStorage - browser API that is unique per tab, but gets copied to new tabs when the tab is duplicated
+//   * BroadcastChannel - shares info across tabs (one message per BroadcastChannel object on the same channel)
+//
+// We mostly use `window` object here rather than closures, so that if the script is loaded multiple times from different URLs,
+// each 'instance' of the script will report the same tab id
 var CHANNEL_AND_STORAGE_NAME = "unique-browser-tab-id";
+var IN_FLIGHT_PROMISE_NAME = "".concat(CHANNEL_AND_STORAGE_NAME, "-in-flight-promise");
+var CONFIRMED_UNIQUE_ID_NAME = "".concat(CHANNEL_AND_STORAGE_NAME, "-confirmed-unique-id");
 var storeInSessionStorage = function (id) {
     sessionStorage.setItem(CHANNEL_AND_STORAGE_NAME, id);
 };
@@ -46,23 +56,43 @@ var getFromSessionStorage = function () {
     return sessionStorage.getItem(CHANNEL_AND_STORAGE_NAME);
 };
 var getUniqueBrowserTabId = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var broadcastChannel, sessionId, id, isDup;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var inFlightPromise, newBrowserTabId, broadcastChannel, sessionId, id, isDupPromise, isDup;
+    var _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                broadcastChannel = new BroadcastChannel(CHANNEL_AND_STORAGE_NAME);
+                if (window[CONFIRMED_UNIQUE_ID_NAME] != null) {
+                    return [2 /*return*/, window[CONFIRMED_UNIQUE_ID_NAME]];
+                }
+                if (!(window[IN_FLIGHT_PROMISE_NAME] != null)) return [3 /*break*/, 3];
+                inFlightPromise = window[IN_FLIGHT_PROMISE_NAME];
+                return [4 /*yield*/, inFlightPromise];
+            case 1:
+                _b.sent();
+                return [4 /*yield*/, (0, exports.getUniqueBrowserTabId)()];
+            case 2:
+                newBrowserTabId = _b.sent();
+                return [2 /*return*/, newBrowserTabId];
+            case 3:
+                broadcastChannel = (_a = window[CHANNEL_AND_STORAGE_NAME]) !== null && _a !== void 0 ? _a : new BroadcastChannel(CHANNEL_AND_STORAGE_NAME);
+                //Save channel to window so it is shared between instances of this script within the same tab. 
+                //This prevents instances on the same tab from receiving messages from each other.
+                window[CHANNEL_AND_STORAGE_NAME] = broadcastChannel;
                 sessionId = getFromSessionStorage();
-                if (!(sessionId == null)) return [3 /*break*/, 1];
+                if (!(sessionId == null)) return [3 /*break*/, 4];
                 //new tab - create new id
                 id = (0, nanoid_1.nanoid)(4); //580 IDs needed for 1% probability of one or more collisions https://zelark.github.io/nano-id-cc/
                 storeInSessionStorage(id);
-                return [3 /*break*/, 3];
-            case 1:
+                return [3 /*break*/, 6];
+            case 4:
                 //page was either refreshed or duplicated
                 id = sessionId;
-                return [4 /*yield*/, (0, exports.checkIfIsDup)(id, broadcastChannel)];
-            case 2:
-                isDup = _a.sent();
+                isDupPromise = (0, exports.checkIfIsDup)(id, broadcastChannel);
+                window[IN_FLIGHT_PROMISE_NAME] = isDupPromise;
+                return [4 /*yield*/, isDupPromise];
+            case 5:
+                isDup = _b.sent();
+                window[IN_FLIGHT_PROMISE_NAME] = null;
                 if (isDup) {
                     //tab was duplicated, create new id
                     id = (0, nanoid_1.nanoid)(4);
@@ -71,8 +101,9 @@ var getUniqueBrowserTabId = function () { return __awaiter(void 0, void 0, void 
                 else {
                     //page was refreshed, everything is ok, keep non-duplicate id
                 }
-                _a.label = 3;
-            case 3:
+                _b.label = 6;
+            case 6:
+                window[CONFIRMED_UNIQUE_ID_NAME] = id;
                 registerCheckIdListener(id, broadcastChannel);
                 return [2 /*return*/, id];
         }
