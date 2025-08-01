@@ -1,5 +1,14 @@
 import { nanoid } from 'nanoid';
 
+// There are several levels at which information can be shared:
+//   * closures - singleton when a script is loaded from the same source
+//   * window object - singleton for the tab, even when script is loaded from different sources
+//   * SessionStorage - browser API that is unique per tab, but gets copied to new tabs when the tab is duplicated
+//   * BroadcastChannel - shares info across tabs (one message per BroadcastChannel object on the same channel)
+//
+// We mostly use `window` object here rather than closures, so that if the script is loaded multiple times from different URLs,
+// each 'instance' of the script will report the same tab id
+
 const CHANNEL_AND_STORAGE_NAME = "unique-browser-tab-id";
 const IN_FLIGHT_PROMISE_NAME = `${CHANNEL_AND_STORAGE_NAME}-in-flight-promise`;
 const CONFIRMED_UNIQUE_ID_NAME = `${CHANNEL_AND_STORAGE_NAME}-confirmed-unique-id`;
