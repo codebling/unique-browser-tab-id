@@ -14,7 +14,10 @@
     "build": "npm run build-tsc",
     "build-tsc": "rm dist/* && npm run tsc -- --declaration true --outDir dist",
     "build-vite": "vite build test",
-    "release-minor": "npm version minor && TAG=`git tag --list --contains=@` && npm run build && git add dist -f && git commit --amend -m \"Bump version to $TAG\" && git tag -f $TAG",
+    "release-major": "npm version major && npm run release-post-npm-version",
+    "release-minor": "npm version minor && npm run release-post-npm-version",
+    "release-patch": "npm version patch && npm run release-post-npm-version",
+    "release-post-npm-version": "TAG=`git tag --list --contains=@` && npm run build && git add dist -f && git commit --amend -m \"Bump version to $TAG\" && git tag -f $TAG",
     "test-the-build-interactively": "npm run build && npx serve test/dist"
   },
   "main": "dist/index.js",
