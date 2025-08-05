@@ -4,7 +4,6 @@
   "author": "",
   "license": "ISC",
   "description": "Get a unique, persistent id for every browser tab",
-  "type": "module",
   "scripts": {
     "start": "npm run dev",
     "dev": "concurrently -k npm:dev-vite npm:dev-tsc",
