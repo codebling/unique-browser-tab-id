@@ -4,7 +4,7 @@
 ## Usage
 
 ```
-npm i codebling/unique-browser-tab-id#v1.1.2
+npm i codebling/unique-browser-tab-id#v1.2.0
 ```
 
 ```
