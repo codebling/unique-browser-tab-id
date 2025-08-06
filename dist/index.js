@@ -150,3 +150,4 @@ var isCheck = function (message) {
 var isCheckResponse = function (message) {
     return message.type === "checkResponse";
 };
+//# sourceMappingURL=index.js.map
